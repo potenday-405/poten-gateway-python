@@ -33,9 +33,9 @@ jobs:
         push: true
         tags: kimjihan77/poten_gateway_python:latest
 
-    - name: Send build success notification # 빌드 성공 시 이메일 전송
-      uses: actions/notify@v3.1.0
-      if: steps.build.status == 'success'
+    - name: build success notification # 빌드 성공 시 이메일 전송
+      uses: actions/notify@v2
+      if: success()
       with:
         title: "Docker Image Build Successful!"
         message: |
@@ -44,8 +44,8 @@ jobs:
           **Image Name:** ${{ env.IMG_NAME }}:latest
 
     - name: Send build failure notification # 빌드 실패 시 이메일 전송
-      uses: actions/notify@v3.1.0
-      if: steps.build.status == 'failure'
+      uses: actions/notify@v2
+      if: failure()
       with:
         title: "Docker Image Build Failed!"
         message: |
