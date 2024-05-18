@@ -13,22 +13,42 @@ jobs:
     runs-on: ubuntu-latest 
 
     steps:
-    - name: Checkout
+    - name: Checkout # 깃헙 저장소에서 코드 체크아웃 (로컬머신에 copy)
       uses: actions/checkout@v2
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
-    - name: Log in to Docker Hub
+    - name: Log in to Docker Hub # docker hub에 로그인
       uses: docker/login-action@v2 
       with:
         username: ${{ secrets.DOCKER_USERNAME }} 
         password: ${{ secrets.DOCKER_PASSWORD }} 
 
-    - name: Build and push Docker image
+    - name: Build and push Docker image # docker 이미지 빌드 + hub에 푸시
       uses: docker/build-push-action@v2
       with:
-        context: . 
+        context: . # 디렉토리 지정
         file: ./Dockerfile
         push: true
         tags: kimjihan77/poten_gateway_python:latest
+
+    - name: Send build success notification # 빌드 성공 시 이메일 전송
+      uses: actions/notify@v2
+      if: steps.build.status == 'success'
+      with:
+        title: "Docker Image Build Successful!"
+        message: |
+          **Commit Message:** ${{ github.event.commits[0].message }}
+
+          **Image Name:** ${{ env.IMG_NAME }}:latest
+
+    - name: Send build failure notification # 빌드 실패 시 이메일 전송
+      uses: actions/notify@v2
+      if: steps.build.status == 'failure'
+      with:
+        title: "Docker Image Build Failed!"
+        message: |
+          **Commit Message:** ${{ github.event.commits[0].message }}
+
+          **Error:** ${{ steps.build.conclusion }}
