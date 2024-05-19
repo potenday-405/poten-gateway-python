@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  IMG_NAME: poten-gateway-test
+  IMG_NAME: poten-gateway
 
 jobs:
   build:
