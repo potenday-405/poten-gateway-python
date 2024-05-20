@@ -6,36 +6,36 @@ import httpx
 router = APIRouter()
 
 SERVICES = {
-    "user" : "10.0.2.6:8080/",
+    "user" : "http://127.0.0.1:8000/user",
     "invitation" : "10.0.5.6:8080"
 }
 
-# :path -> "/"를 경로 안에 포함할 수 있게끔 처리
-@router.api_route("/{service}/{path:path}",methods=["GET", "POST", "PUT", "DELETE"])
-async def proxy_request(service:str, path:str, request:Request, version: str = Header("1.0")):
-    if service not in SERVICES:
-        raise HTTPException(status_code=404, detail="Service not found")
-
-        url = f"{SERVICES[service]}/{path}"
-
+@router.get("/{service}/{path:path}")
+async def get_proxy_request(service:str, path:str, request:Request, version: str = Header("1.0")):
+    url = f"{SERVICES[service]}/{path}"
+    print(url)
     async with httpx.AsyncClient() as client:
-        try:
-            if request.method == "GET":
-                # response = {
-                #     "service" : service, 
-                #     "path" : path,
-                #     "header" : version
-                # }
-                response = await client.get(url, params=request.query_params, header=version)
-            elif request.method == "POST":
-                response = await client.post(url, content=await request.body(), header=version)
-            elif request.method == "PUT":
-                response = await client.put(url, content=await request.body(), header=version)
-            elif request.method == "DELETE":
-                response = await client.delete(url, header=version)
-            else:
-                raise HTTPException(status_code=405, detail="Method not allowed")
+        response = await client.get(url, params=request.query_params, headers={"version" : version})
+        return response.json()
+        
 
-            return response.json()
-        except httpx.RequestError as exc:
-            raise HTTPException(status_code=500, detail=str(exc))
+@router.post("/{service}/{path:path}")
+async def post_proxy_request(service:str, path:str, request:Request, version: str = Header("1.0")):
+    url = f"{SERVICES[service]}/{path}"
+    async with httpx.AsyncClient() as client:
+        response = await client.post(url, content=await request.body(), headers={"version" : version})
+        return response.json()
+
+@router.put("/{service}/{path:path}")
+async def put_proxy_request(service:str, path:str, request:Request, version: str = Header("1.0")):
+    url = f"{SERVICES[service]}/{path}"
+    async with httpx.AsyncClient() as client:
+        response = await client.put(url, content=await request.body(), headers={"version" : version})
+        return response.json()
+
+@router.delete("/{service}/{path:path}")
+async def delete_proxy_request(service:str, path:str, request:Request, version: str = Header("1.0")):
+    url = f"{SERVICES[service]}/{path}"
+    async with httpx.AsyncClient() as client:
+        response = await client.delete(url, headers={"version" : version})
+        return response.json()
