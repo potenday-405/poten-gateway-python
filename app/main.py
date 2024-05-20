@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.api.v1.gateway import router as v1_router
+from app.routes.gateway import router
 
 app = FastAPI(
     title="{서비스이름} gateway 서버",
@@ -14,4 +14,4 @@ app = FastAPI(
     """
 )
 
-app.include_router(v1_router, tags=["gateway"])
+app.include_router(router, tags=["gateway"])

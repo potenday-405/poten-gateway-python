@@ -6,7 +6,7 @@ import httpx
 router = APIRouter()
 
 SERVICES = {
-    "user" : "user 도메인",
+    "user" : "10.0.2.6:8080/",
     "invitation" : "10.0.5.6:8080"
 }
 
