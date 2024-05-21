@@ -5,7 +5,7 @@ from fastapi import APIRouter, Request, HTTPException, Header, Depends
 import httpx
 import json
 
-from app.database.settings import SessionLocal, engine
+from app.database.settings import SessionLocal, engine, get_test_db
 from app.core.db import Engineconn
 
 from app.service.auth import AuthService
@@ -17,18 +17,10 @@ SERVICES = {
     "user" : "10.0.8.7:8000/user", 
     # 로컬용
     # "user" : "http://127.0.0.1:8080/user",
+    # 걍진짜 테스트
+    # "user" : "http://175.45.203.113:8000/user",
     "invitation" : "10.0.5.6:8080"
 }
-
-engine = Engineconn()
-session = engine.create_session()
-
-def get_test_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.get("/{service}/{path:path}")
 async def get_proxy_request(service:str, path:str, request:Request, version: str = Header("1.0"), access_token: Annotated[str | None, Header()] = None, db:Session = Depends(get_test_db)):
