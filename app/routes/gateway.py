@@ -1,7 +1,9 @@
 # 라우팅
-
 from fastapi import APIRouter, Request, HTTPException, Header
 import httpx
+
+from app.database.settings import SessionLocal, engine
+from app.core.db import Engineconn
 
 router = APIRouter()
 
@@ -9,6 +11,16 @@ SERVICES = {
     "user" : "10.0.8.7:8000/user",
     "invitation" : "10.0.5.6:8080"
 }
+
+engine = Engineconn()
+session = engine.create_session()
+
+def get_test_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 @router.get("/{service}/{path:path}")
 async def get_proxy_request(service:str, path:str, request:Request, version: str = Header("1.0")):
