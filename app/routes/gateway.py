@@ -6,13 +6,13 @@ import httpx
 router = APIRouter()
 
 SERVICES = {
-    "user" : "http://127.0.0.1:8000/user",
+    "user" : "10.0.8.7:8000/user",
     "invitation" : "10.0.5.6:8080"
 }
 
 @router.get("/{service}/{path:path}")
 async def get_proxy_request(service:str, path:str, request:Request, version: str = Header("1.0")):
-    url = f"{SERVICES[service]}/{path}"
+    url = f"http://{SERVICES[service]}/{path}"
     print(url)
     async with httpx.AsyncClient() as client:
         response = await client.get(url, params=request.query_params, headers={"version" : version})
