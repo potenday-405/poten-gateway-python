@@ -10,6 +10,9 @@ python = "^3.11"
 fastapi = "^0.111.0"
 uvicorn = "^0.29.0"
 pyjwt = "^2.8.0"
+sqlalchemy = "^2.0.30"
+pydantic-settings = "^2.2.1"
+pymysql = "^1.1.0"
 
 
 [build-system]
