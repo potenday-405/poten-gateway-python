@@ -14,9 +14,9 @@ router = APIRouter()
 
 SERVICES = {
     # 서버용
-    # "user" : "http://10.0.8.7:8000/user", 
+    "user" : "10.0.8.7:8000/user", 
     # 로컬용
-    "user" : "http://127.0.0.1:8080/user",
+    # "user" : "http://127.0.0.1:8080/user",
     "invitation" : "10.0.5.6:8080"
 }
 
