@@ -31,24 +31,36 @@ def get_test_db():
         db.close()
 
 @router.get("/{service}/{path:path}")
-async def get_proxy_request(service:str, path:str, request:Request, version: str = Header("1.0"), access_token: Annotated[str | None, Header()] = None):
-    # accessToken이 없는 경우
-    # if not access_token and not (path == "login" or path == "signup"):
-    #     raise HTTPException(status_code=401, detail="accessToken header missing!")
+async def get_proxy_request(service:str, path:str, request:Request, version: str = Header("1.0"), access_token: Annotated[str | None, Header()] = None, db:Session = Depends(get_test_db)):
 
-    # # 토큰이 있을 경우, 유효한 토큰인지 체크
-    # auth = AuthService()
-    # return await auth.forward_api(request)
-    # # verify_jwt(access_token)
+    if not access_token :
+        raise HTTPException(status_code=400, detail="No access_token in Header")
 
-    url = f"http://{SERVICES[service]}/{path}"
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url, params=request.query_params, headers={"version" : version})
-        return response.json()
+    else:
+        auth = AuthService(db)
+        url = f"{SERVICES[service]}/{path}"
+
+        payload = await auth.verify_and_create_token(
+            service,
+            path,
+            request,
+            access_token,
+            version
+        )
+
+        # payload가 있는 경우,
+        email = payload.get("sub")
+
+        if email:
+            # user_id값 보내기
+            user_id = await auth.get_user_id(email)
+            async with httpx.AsyncClient() as client:
+                response = await client.get(url, params=request.query_params, headers={"version" : version, "user_id" : str(user_id)})
+                return response.json()
         
 
 @router.post("/{service}/{path:path}")
-async def post_proxy_request(service:str, path:str, request:Request, version: str = Header("1.0"), access_token: str | None = Header(), db:Session = Depends(get_test_db)):
+async def post_proxy_request(service:str, path:str, request:Request, version: str = Header("1.0"), access_token: Annotated[str | None, Header()] = None, db:Session = Depends(get_test_db)):
 
     auth = AuthService(db)
     url = f"{SERVICES[service]}/{path}"
@@ -84,15 +96,57 @@ async def post_proxy_request(service:str, path:str, request:Request, version: st
                 return response.json()
 
 @router.put("/{service}/{path:path}")
-async def put_proxy_request(service:str, path:str, request:Request, version: str = Header("1.0")):
-    url = f"{SERVICES[service]}/{path}"
-    async with httpx.AsyncClient() as client:
-        response = await client.put(url, content=await request.body(), headers={"version" : version})
-        return response.json()
+async def put_proxy_request(service:str, path:str, request:Request, version: str = Header("1.0"), access_token: Annotated[str | None, Header()] = None, db:Session = Depends(get_test_db)):
+
+    if not access_token :
+        raise HTTPException(status_code=400, detail="No access_token in Header")
+
+    else:
+        auth = AuthService(db)
+        url = f"{SERVICES[service]}/{path}"
+
+        payload = await auth.verify_and_create_token(
+            service,
+            path,
+            request,
+            access_token,
+            version
+        )
+
+        # payload가 있는 경우,
+        email = payload.get("sub")
+
+        if email:
+            # user_id값 보내기
+            user_id = await auth.get_user_id(email)
+            async with httpx.AsyncClient() as client:
+                response = await client.put(url, params=await request.body(), headers={"version" : version, "user_id" : str(user_id)})
+                return response.json()
 
 @router.delete("/{service}/{path:path}")
-async def delete_proxy_request(service:str, path:str, request:Request, version: str = Header("1.0")):
-    url = f"{SERVICES[service]}/{path}"
-    async with httpx.AsyncClient() as client:
-        response = await client.delete(url, headers={"version" : version})
-        return response.json()
+async def put_proxy_request(service:str, path:str, request:Request, version: str = Header("1.0"), access_token: Annotated[str | None, Header()] = None, db:Session = Depends(get_test_db)):
+
+    if not access_token :
+        raise HTTPException(status_code=400, detail="No access_token in Header")
+
+    else:
+        auth = AuthService(db)
+        url = f"{SERVICES[service]}/{path}"
+
+        payload = await auth.verify_and_create_token(
+            service,
+            path,
+            request,
+            access_token,
+            version
+        )
+
+        # payload가 있는 경우,
+        email = payload.get("sub")
+
+        if email:
+            # user_id값 보내기
+            user_id = await auth.get_user_id(email)
+            async with httpx.AsyncClient() as client:
+                response = await client.delete(url, headers={"version" : version, "user_id" : str(user_id)})
+                return response.json()
