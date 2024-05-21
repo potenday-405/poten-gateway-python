@@ -1,6 +1,7 @@
 # 라우팅
 from typing import Annotated
-from fastapi import APIRouter, Request, HTTPException, Header
+from sqlalchemy.orm import Session
+from fastapi import APIRouter, Request, HTTPException, Header, Depends
 import httpx
 import json
 
@@ -47,15 +48,40 @@ async def get_proxy_request(service:str, path:str, request:Request, version: str
         
 
 @router.post("/{service}/{path:path}")
-async def post_proxy_request(service:str, path:str, request:Request, version: str = Header("1.0"), access_token: Annotated[str | None, Header()] = None):
+async def post_proxy_request(service:str, path:str, request:Request, version: str = Header("1.0"), access_token: str | None = Header(), db:Session = Depends(get_test_db)):
 
-    auth = AuthService()
+    auth = AuthService(db)
     url = f"{SERVICES[service]}/{path}"
 
-    if path == "login" or "signup":
+    # 로그인 / 회원가입 로직
+    if path == "login" or path == "signup":
         async with httpx.AsyncClient() as client:
             response = await client.post(url, content=await request.body(), headers={"version" : version})
             return response.json()
+
+    # accessToken이 없을 경우, error raise
+    elif not access_token :
+        raise HTTPException(status_code=400, detail="No access_token in Header")
+
+    # accessToken이 존재할 경우,
+    else:
+        payload = await auth.verify_and_create_token(
+            service,
+            path,
+            request,
+            access_token,
+            version
+        )
+
+        # payload가 있는 경우,
+        email = payload.get("sub")
+
+        if email:
+            # user_id값 보내기
+            user_id = await auth.get_user_id(email)
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, content=await request.body(), headers={"version" : version, "user_id" : str(user_id)})
+                return response.json()
 
 @router.put("/{service}/{path:path}")
 async def put_proxy_request(service:str, path:str, request:Request, version: str = Header("1.0")):
