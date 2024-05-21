@@ -14,9 +14,9 @@ router = APIRouter()
 
 SERVICES = {
     # 서버용
-    "user" : "10.0.8.7:8000/user", 
+    # "user" : "10.0.8.7:8000/user", 
     # 로컬용
-    # "user" : "http://127.0.0.1:8080/user",
+    "user" : "http://127.0.0.1:8080/user",
     # 걍진짜 테스트
     # "user" : "http://175.45.203.113:8000/user",
     "invitation" : "10.0.5.6:8080"
@@ -61,7 +61,8 @@ async def post_proxy_request(service:str, path:str, request:Request, version: st
     if path == "login" or path == "signup":
         async with httpx.AsyncClient() as client:
             response = await client.post(url, content=await request.body(), headers={"version" : version})
-            return response.json()
+            # return response.json()
+            return json.loads(response.content)
 
     # accessToken이 없을 경우, error raise
     elif not access_token :
