@@ -14,14 +14,14 @@ router = APIRouter()
 
 SERVICES = {
     # 서버용
-    # "user" : "10.0.8.7:8000/user", 
-    # "profile" : "10.0.8.7:8000/profile", 
     # 로컬용
-    "user" : "http://127.0.0.1:8080/user",
+    # "user" : "http://127.0.0.1:8080/user",
     # 걍진짜 테스트
-    # "user" : "http://175.45.203.113:8000/user",
-    "invitation" : "10.0.5.6:8080"
+    "user" : "http://175.45.203.113:8000/user",
+    "invitation" : "http://175.45.192.38:8000/invitation"
 }
+
+#TODO PROXY_REQUEST 로직 분리하기 -> 중복코드 너무 많음 🚨🚨🚨🚨🚨🚨
 
 @router.get("/{service}/{path:path}")
 async def get_proxy_request(service:str, path:str, request:Request, version: str = Header("1.0"), access_token: Annotated[str | None, Header()] = None):
@@ -42,14 +42,13 @@ async def get_proxy_request(service:str, path:str, request:Request, version: str
         )
 
         # payload가 있는 경우,
-        
         user_id = payload.get("sub")
 
         async with httpx.AsyncClient() as client:
             response = await client.get(url, params=request.query_params, headers={"version" : version, "user_id" : str(user_id)})
             if response.status_code != 200:
-                raise HTTPException(status_code=response.status_code, detail=response.json().get("detail"))
-            return response.json()
+                raise HTTPException(status_code=response.status_code, detail=json.loads(response.content).get("detail"))
+            return json.loads(response.content)
         
 
 @router.post("/{service}/{path:path}")
@@ -113,7 +112,7 @@ async def put_proxy_request(service:str, path:str, request:Request, version: str
         user_id = payload.get("sub")
 
         async with httpx.AsyncClient() as client:
-            response = await client.put(url, params=await request.body(), headers={"version" : version, "user_id" : str(user_id)})
+            response = await client.put(url, content=await request.body(), headers={"version" : version, "user_id" : str(user_id)})
             if response.status_code != 200:
                 raise HTTPException(status_code=response.status_code, detail=json.loads(response.content).get("detail"))
             return json.loads(response.content)
@@ -144,4 +143,6 @@ async def put_proxy_request(service:str, path:str, request:Request, version: str
             user_id = await auth.get_user_id(email)
             async with httpx.AsyncClient() as client:
                 response = await client.delete(url, headers={"version" : version, "user_id" : str(user_id)})
-                return response.json()
+                if response.status_code != 200:
+                    raise HTTPException(status_code=response.status_code, detail=json.loads(response.content).get("detail"))
+                return json.loads(response.content)
