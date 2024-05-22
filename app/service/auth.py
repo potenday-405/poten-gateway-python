@@ -16,8 +16,8 @@ class UserId(BaseModel):
     user_id : str
 
 class AuthService():
-    def __init__(self, db:Session):
-        self.db = db
+    def __init__(self):
+        pass
 
     @staticmethod
     def get_url(service:str, path:str):
@@ -91,9 +91,9 @@ class AuthService():
         except HTTPException as e:
             # 토큰이 만료된 경우 재발급
             if e.status_code == 401 and e.detail == "Token has expired":
-                user_email = payload.get("sub")
-                if user_email:
-                    new_token = create_access_token(data={"sub": user_email})
+                user_id = payload.get("sub")
+                if user_id:
+                    new_token = create_access_token(data={"sub": user_id})
                     # 헤더에 새 토큰을 추가하고 다시 요청 보냄
                     request.headers["access_token"] = f"Bearer {new_token}"
                     return new_token
