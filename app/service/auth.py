@@ -89,15 +89,15 @@ class AuthService():
             payload = self.verify_jwt(self, access_token)
             return payload
         except HTTPException as e:
+            raise HTTPException(status_code=e.status_code, detail=e.detail)
             # 토큰이 만료된 경우 재발급
-            if e.status_code == 401 and e.detail == "Token has expired":
-                user_id = payload.get("sub")
-                if user_id:
-                    new_token = create_access_token(data={"sub": user_id})
-                    # 헤더에 새 토큰을 추가하고 다시 요청 보냄
-                    request.headers["access_token"] = f"Bearer {new_token}"
-                    return new_token
-            raise e
+            # if e.status_code == 401 and e.detail == "Token has expired":
+                # user_id = payload.get("sub")
+                # if user_id:
+                #     new_token = create_access_token(data={"sub": user_id})
+                #     # 헤더에 새 토큰을 추가하고 다시 요청 보냄
+                #     request.headers["access_token"] = f"Bearer {new_token}"
+                #     return new_token
 
     async def get_user_id(self, email):
         User = models.User

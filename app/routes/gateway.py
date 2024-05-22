@@ -80,7 +80,6 @@ async def post_proxy_request(service:str, path:str, request:Request, version: st
             version
         )
 
-
         # payload가 있는 경우,
         user_id = payload.get("sub")
 
