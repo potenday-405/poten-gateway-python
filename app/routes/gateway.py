@@ -47,6 +47,8 @@ async def get_proxy_request(service:str, path:str, request:Request, version: str
 
         async with httpx.AsyncClient() as client:
             response = await client.get(url, params=request.query_params, headers={"version" : version, "user_id" : str(user_id)})
+            if response.status_code != 200:
+                raise HTTPException(status_code=response.status_code, detail=response.json().get("detail"))
             return response.json()
         
 
@@ -60,7 +62,8 @@ async def post_proxy_request(service:str, path:str, request:Request, version: st
     if path == "login" or path == "signup":
         async with httpx.AsyncClient() as client:
             response = await client.post(url, content=await request.body(), headers={"version" : version})
-            
+            if response.status_code != 200:
+                raise HTTPException(status_code=response.status_code, detail=json.loads(response.content).get("detail"))
             return json.loads(response.content)
 
     # accessToken이 없을 경우, error raise
@@ -82,9 +85,10 @@ async def post_proxy_request(service:str, path:str, request:Request, version: st
         user_id = payload.get("sub")
 
         async with httpx.AsyncClient() as client:
-            
             response = await client.post(url, content=await request.body(), headers={"version" : version, "user_id" : str(user_id)})
-            return response.json()
+            if response.status_code != 200:
+                raise HTTPException(status_code=response.status_code, detail=json.loads(response.content).get("detail"))
+            return json.loads(response.content)
 
 
 @router.put("/{service}/{path:path}")
@@ -111,7 +115,9 @@ async def put_proxy_request(service:str, path:str, request:Request, version: str
 
         async with httpx.AsyncClient() as client:
             response = await client.put(url, params=await request.body(), headers={"version" : version, "user_id" : str(user_id)})
-            return response.json()
+            if response.status_code != 200:
+                raise HTTPException(status_code=response.status_code, detail=json.loads(response.content).get("detail"))
+            return json.loads(response.content)
 
 @router.delete("/{service}/{path:path}")
 async def put_proxy_request(service:str, path:str, request:Request, version: str = Header("1.0"), access_token: Annotated[str | None, Header()] = None, db:Session = Depends(get_test_db)):
