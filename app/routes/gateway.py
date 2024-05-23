@@ -80,7 +80,7 @@ async def post_proxy_request(service:str, path:str, request:Request, version: st
         user_id = payload.get("sub")
 
         async with httpx.AsyncClient() as client:
-            response = await client.post(url, content=await request.body(), headers={"version" : version, "user_id" : str(user_id)})
+            response = await client.post(url, content=await request.body(), headers={"version" : version, "user_id" : str(user_id), "content-type" : "application/json"})
             if response.status_code != 200:
                 raise HTTPException(status_code=response.status_code, detail=json.loads(response.content).get("detail"))
             return json.loads(response.content)

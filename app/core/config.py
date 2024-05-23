@@ -15,5 +15,8 @@ TEST_DB_HOST = os.getenv("TEST_DB_HOST")
 TEST_DB_PORT = 3306
 TEST_DB_BASE = os.getenv("TEST_DB_BASE")
 
-USER_URL = os.getenv("USER_URL")
-INVITATION_URL = os.getenv("INVITATION_URL")
+
+USER_URL = "http://175.45.203.113:80/user"
+INVITATION_URL = "http://175.45.192.38:80/invitation"
+# USER_URL = os.getenv("USER_URL")
+# INVITATION_URL = os.getenv("INVITATION_URL")
