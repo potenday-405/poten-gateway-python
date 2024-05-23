@@ -7,18 +7,15 @@ import json
 
 from app.database.settings import SessionLocal, engine, get_test_db
 from app.core.db import Engineconn
+from app.core.config import USER_URL, INVITATION_URL
 
 from app.service.auth import AuthService
 
 router = APIRouter()
 
 SERVICES = {
-    # 서버용
-    # 로컬용
-    # "user" : "http://127.0.0.1:8080/user",
-    # 걍진짜 테스트
-    "user" : "http://175.45.203.113:8000/user",
-    "invitation" : "http://175.45.192.38:8000/invitation"
+    "user" : USER_URL,
+    "invitation" : INVITATION_URL
 }
 
 #TODO PROXY_REQUEST 로직 분리하기 -> 중복코드 너무 많음 🚨🚨🚨🚨🚨🚨
