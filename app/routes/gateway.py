@@ -136,7 +136,7 @@ async def put_proxy_request(service:str, path:str, request:Request, version: str
         user_id = payload.get("sub")
 
         async with httpx.AsyncClient() as client:
-            response = await client.delete(url, headers={"version" : version, "user_id" : str(user_id)})
+            response = await client.delete(url, params=request.query_params, headers={"version" : version, "user_id" : str(user_id)})
             if response.status_code != 200:
                 raise HTTPException(status_code=response.status_code, detail=json.loads(response.content).get("detail"))
             return json.loads(response.content)
