@@ -115,13 +115,13 @@ async def put_proxy_request(service:str, path:str, request:Request, version: str
             return json.loads(response.content)
 
 @router.delete("/{service}/{path:path}")
-async def put_proxy_request(service:str, path:str, request:Request, version: str = Header("1.0"), access_token: Annotated[str | None, Header()] = None, db:Session = Depends(get_test_db)):
+async def put_proxy_request(service:str, path:str, request:Request, version: str = Header("1.0"), access_token: Annotated[str | None, Header()] = None):
 
     if not access_token :
         raise HTTPException(status_code=400, detail="No access_token in Header")
 
     else:
-        auth = AuthService(db)
+        auth = AuthService()
         url = f"{SERVICES[service]}/{path}"
 
         payload = await auth.verify_and_create_token(
@@ -133,13 +133,10 @@ async def put_proxy_request(service:str, path:str, request:Request, version: str
         )
 
         # payload가 있는 경우,
-        email = payload.get("sub")
+        user_id = payload.get("sub")
 
-        if email:
-            # user_id값 보내기
-            user_id = await auth.get_user_id(email)
-            async with httpx.AsyncClient() as client:
-                response = await client.delete(url, headers={"version" : version, "user_id" : str(user_id)})
-                if response.status_code != 200:
-                    raise HTTPException(status_code=response.status_code, detail=json.loads(response.content).get("detail"))
-                return json.loads(response.content)
+        async with httpx.AsyncClient() as client:
+            response = await client.delete(url, headers={"version" : version, "user_id" : str(user_id)})
+            if response.status_code != 200:
+                raise HTTPException(status_code=response.status_code, detail=json.loads(response.content).get("detail"))
+            return json.loads(response.content)
