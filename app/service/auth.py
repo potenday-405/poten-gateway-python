@@ -3,7 +3,7 @@ import jwt
 import json
 import httpx
 from datetime import datetime, timedelta
-from app.core.config import ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM, USER_URL, INVITATION_URL
+from app.core.config import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_SECRET_KEY, SECRET_KEY, ALGORITHM, USER_URL, INVITATION_URL
 from app.database import models
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -29,7 +29,11 @@ class AuthService():
     def verify_jwt(self, token: str, token_type:Literal["A", "R"]):
         """유효한 토큰인지 확인"""
         try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            if token_type == "A":
+                payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            else:
+                print(token, "token")
+                payload = jwt.decode(token, REFRESH_SECRET_KEY, algorithms=[ALGORITHM])
             return payload
         except jwt.ExpiredSignatureError:
             if token_type == "A":
