@@ -26,18 +26,6 @@ class AuthService():
         return f"{SERVICES[service]}/{path}"
 
     @staticmethod
-    def create_access_token(self, data: dict, expires_delta: timedelta = None):
-        """새로운 토큰 발행"""
-        to_encode = data.copy()
-        if expires_delta:
-            expire = datetime.utcnow() + expires_delta
-        else:
-            expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        to_encode.update({"exp": expire})
-        encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-        return encoded_jwt
-
-    @staticmethod
     def verify_jwt(self, token: str, token_type:Literal["A", "R"]):
         """유효한 토큰인지 확인"""
         try:
