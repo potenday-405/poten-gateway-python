@@ -37,7 +37,7 @@ async def get_proxy_request(
 
     # RT만 있을 경우, 
     elif refresh_token and not access_token :
-        payload = await auth.verify_token(access_token, "R")
+        payload = await auth.verify_token(refresh_token, "R")
         return await auth.forward_api("GET", service, path, request, payload.get("sub"))
 
     # AT가 존재할 경우,
@@ -67,7 +67,7 @@ async def post_proxy_request(
 
     # RT만 있을 경우, 
     elif not access_token and refresh_token :
-        payload = await auth.verify_token(access_token, "R")
+        payload = await auth.verify_token(refresh_token, "R")
         return await auth.forward_api("POST", service, path, request, payload.get("sub"))
 
     # AT가 존재할 경우,
@@ -93,7 +93,7 @@ async def put_proxy_request(
 
     # RT만 있을 경우, 
     elif not access_token and refresh_token :
-        payload = await auth.verify_token(access_token, "R")
+        payload = await auth.verify_token(refresh_token, "R")
         return await auth.forward_api("PUT", service, path, request, payload.get("sub"))
 
     # AT가 존재할 경우,
@@ -118,7 +118,7 @@ async def put_proxy_request(
 
     # RT만 있을 경우, 
     elif not access_token and refresh_token :
-        payload = await auth.verify_token(access_token, "R")
+        payload = await auth.verify_token(refresh_token, "R")
         return await auth.forward_api("DELETE", service, path, request, payload.get("sub"))
         
     # AT가 존재할 경우,
