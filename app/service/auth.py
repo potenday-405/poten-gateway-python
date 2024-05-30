@@ -7,6 +7,7 @@ from app.core.config import ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM, 
 from app.database import models
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
+from typing import Literal
 
 SERVICES = {
     "user" : USER_URL,
@@ -37,16 +38,18 @@ class AuthService():
         return encoded_jwt
 
     @staticmethod
-    def verify_jwt(self, token: str):
+    def verify_jwt(self, token: str, token_type:Literal["A", "R"]):
         """유효한 토큰인지 확인"""
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
             return payload
         except jwt.ExpiredSignatureError:
-            raise HTTPException(status_code=401, detail="Token has expired")
+            if token_type == "A":
+                raise HTTPException(status_code=401, detail="Token has expired")
+            else:
+                raise HTTPException(status_code=403, detail="RefreshToken has expired")
         except jwt.InvalidTokenError:
             raise HTTPException(status_code=401, detail="Invalid token")
-
 
     async def forward_api(
         self, 
@@ -108,27 +111,17 @@ class AuthService():
                     raise HTTPException(status_code=response.status_code, detail=json.loads(response.content).get("detail"))
                 return json.loads(response.content)
 
-    async def verify_and_create_token(
-        self, 
-        service : str, 
-        path:str,
-        request: Request,
-        access_token:str,
-        version:str
-    ):
+    async def verify_token(self, token:str, token_type:Literal["A", "R"]):
+        """ 토큰 유효성 검사 
+
+        :params token: 토큰값
+        :params token_type: A : accessToken, R : refreshToken
+        """
         try:
-            payload = self.verify_jwt(self, access_token)
+            payload = self.verify_jwt(self, token, token_type)
             return payload
         except HTTPException as e:
             raise HTTPException(status_code=e.status_code, detail=e.detail)
-            # 토큰이 만료된 경우 재발급
-            # if e.status_code == 401 and e.detail == "Token has expired":
-                # user_id = payload.get("sub")
-                # if user_id:
-                #     new_token = create_access_token(data={"sub": user_id})
-                #     # 헤더에 새 토큰을 추가하고 다시 요청 보냄
-                #     request.headers["access_token"] = f"Bearer {new_token}"
-                #     return new_token
 
     async def get_user_id(self, email):
         User = models.User
