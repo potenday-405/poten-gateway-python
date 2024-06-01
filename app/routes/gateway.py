@@ -102,7 +102,7 @@ async def put_proxy_request(
         return await auth.forward_api("PUT", service, path, request, payload.get("sub"))
 
 @router.delete("/{service}/{path:path}")
-async def put_proxy_request(
+async def delete_proxy_request(
     service:str, 
     path:str, 
     request:Request, 

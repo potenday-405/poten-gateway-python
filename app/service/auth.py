@@ -32,7 +32,6 @@ class AuthService():
             if token_type == "A":
                 payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
             else:
-                print(token, "token")
                 payload = jwt.decode(token, REFRESH_SECRET_KEY, algorithms=[ALGORITHM])
             return payload
         except jwt.ExpiredSignatureError:
