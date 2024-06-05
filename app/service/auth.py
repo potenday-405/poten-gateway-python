@@ -75,7 +75,7 @@ class AuthService():
             async with httpx.AsyncClient() as client:
 
                 url = self.get_url(service, path)
-                headers = self.header if not user_id else {**self.header, "user_id" : str(user_id)} 
+                headers = self.header if not user_id else {**self.header, "user_id" : str(user_id), "content-type" : "application/json"} 
 
                 response = await client.post(url, content=await request.body(), headers=headers)
 
