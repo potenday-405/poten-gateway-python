@@ -78,6 +78,7 @@ class AuthService():
                 headers = self.header if not user_id else {**self.header, "user_id" : str(user_id), "content-type" : "application/json"} 
 
                 response = await client.post(url, content=await request.body(), headers=headers)
+                print(response.text)
 
                 if response.status_code != 200:
                     raise HTTPException(status_code=response.status_code, detail=json.loads(response.content).get("detail"))
