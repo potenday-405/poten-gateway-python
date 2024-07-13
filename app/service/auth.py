@@ -1,4 +1,4 @@
-from fastapi import HTTPException, Request
+from fastapi import HTTPException, Request, UploadFile
 import jwt
 import json
 import httpx
@@ -75,10 +75,22 @@ class AuthService():
             async with httpx.AsyncClient() as client:
 
                 url = self.get_url(service, path)
-                headers = self.header if not user_id else {**self.header, "user_id" : str(user_id), "content-type" : "application/json"} 
 
-                response = await client.post(url, content=await request.body(), headers=headers)
-                print(response.text)
+                form = await request.form()
+                
+                if form:
+                    headers = self.header if not user_id else {**self.header, "user_id" : str(user_id)} 
+                    files = {}
+
+                    for key, value in form.items():
+                        if isinstance(value, UploadFile):
+                            file_contents = await value.read()
+                            files[key] = (value.filename, file_contents, value.content_type)
+                    response = await client.post(url, headers=headers, files=files)
+
+                else:
+                    headers = self.header if not user_id else {**self.header, "user_id" : str(user_id), "content-type" : "application/json"} 
+                    response = await client.post(url, content=await request.body(), headers=headers)
 
                 if response.status_code != 200:
                     raise HTTPException(status_code=response.status_code, detail=json.loads(response.content).get("detail"))
