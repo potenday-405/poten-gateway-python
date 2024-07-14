@@ -77,16 +77,22 @@ class AuthService():
                 url = self.get_url(service, path)
 
                 form = await request.form()
-                
-                if form:
-                    headers = self.header if not user_id else {**self.header, "user_id" : str(user_id)} 
-                    files = {}
 
-                    for key, value in form.items():
-                        if isinstance(value, UploadFile):
-                            file_contents = await value.read()
-                            files[key] = (value.filename, file_contents, value.content_type)
-                    response = await client.post(url, headers=headers, files=files)
+                if form :
+
+                    files = {}
+                    data = {}
+                    headers = self.header if not user_id else {**self.header, "user_id" : str(user_id)} 
+                    
+                    for field in form:
+                        if isinstance(form[field], UploadFile):
+                            files[field] = (form[field].filename, await form[field].read(), form[field].content_type)
+                            print(files, "files")
+                        else:
+                            data[field] = form[field]
+                            print(data, "data")
+
+                    response = await client.post(url, headers=headers, files=files, data=data)
 
                 else:
                     headers = self.header if not user_id else {**self.header, "user_id" : str(user_id), "content-type" : "application/json"} 
