@@ -1,4 +1,4 @@
-from fastapi import HTTPException, Request, UploadFile
+from fastapi import HTTPException, Request, UploadFile, Form
 import jwt
 import json
 import httpx
@@ -8,6 +8,10 @@ from app.database import models
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Literal
+from starlette.datastructures import FormData
+import datetime
+import shutil
+import os
 
 SERVICES = {
     "user" : USER_URL,
@@ -77,23 +81,51 @@ class AuthService():
                 url = self.get_url(service, path)
 
                 form = await request.form()
-
+                
                 if form :
+                    #TODO 분리
+                    temp_dir = "./files"
+                    os.makedirs(temp_dir, exist_ok=True)
 
-                    files = {}
-                    data = {}
+                    uploaded_file = form["file"]
+
+                    # 파일이름 일단 변경해주기.
+                    # now = datetime.datetime.now()
+                    # formatted_now = now.strftime("%Y-%m-%d")
+                    # uploaded_file_name = f"{formatted_now}_{uploaded_file.filename}"
+                    file_path = os.path.join(temp_dir, uploaded_file.filename)
+                    # print(uploaded_file.content)
+
+                    # 임시로 파일 저장
+                    with open(file_path, "wb") as f:
+                        contents = await uploaded_file.read() 
+                        f.write(contents)
+
+                    # csv 파일 사이즈 제대로 업로드 됐느지 확인.
+                    file_size = os.path.getsize(file_path)
+                    print(file_size)
+
+                    file_obj = open(file_path, "rb")
+                    print(f"File object: {file_obj}")
+
+
                     headers = self.header if not user_id else {**self.header, "user_id" : str(user_id)} 
+                    # # response = await client.post(url, headers=headers, files=form)
+
+                    # files = {}
+                    # data = {}
                     
-                    for field in form:
-                        if isinstance(form[field], UploadFile):
-                            files[field] = (form[field].filename, await form[field].read(), form[field].content_type)
-                            print(files, "files")
-                        else:
-                            data[field] = form[field]
-                            print(data, "data")
+                    # for field in form:
+                    #     if isinstance(form[field], UploadFile):
+                    #         files[field] = (form[field].filename, await form[field].read(), form[field].content_type)
+                    #         print(files, "files")
+                    #     else:
+                    #         data[field] = form[field]
+                    #         print(data, "data")
 
-                    response = await client.post(url, headers=headers, files=files, data=data)
-
+                    response = await client.post(url, headers=headers, files={"file":open(file_path, "rb")})
+                    print(response.content)
+                    print(response.status_code)
                 else:
                     headers = self.header if not user_id else {**self.header, "user_id" : str(user_id), "content-type" : "application/json"} 
                     response = await client.post(url, content=await request.body(), headers=headers)
