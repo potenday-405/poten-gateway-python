@@ -1,17 +1,14 @@
 version: '3.8'
 
 services:
-  gateway-container:
-    image: gateway
+  gateway:
+    image: kozubjihan/gateway:latest
     ports:
-      - "8000:80"
+      - "8080:8080"
     networks:
       - garden-of-records
 
 networks:
   garden-of-records:
-    driver: bridge
+    external: true
 
-volumes:
-  mysql-data:
-    driver: local
